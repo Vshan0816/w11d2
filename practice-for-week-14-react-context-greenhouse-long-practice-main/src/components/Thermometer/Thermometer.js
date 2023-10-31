@@ -7,33 +7,38 @@ function Thermometer() {
   const {temperature, setTemperature} = useClimateContext();
   const [currentTemperature, setCurrentTemperature] = useState(temperature);
   const [desiredTemperature, setDesiredTemperature] = useState(temperature);
-  let change = 0;
+  
 
-  useEffect(()=> {
-    while (currentTemperature !== desiredTemperature) {
-      setTimeout(setTemperature(temperature + change), 1000)
-      setCurrentTemperature(temperature + change)
-    }
-  }, [temperature, currentTemperature, desiredTemperature])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      slowlyChangeTemperature();
 
-  const slowlyChangeTemperature = (val) => {
-    setCurrentTemperature(temperature);
-    setDesiredTemperature(val)
-    
-    if (desiredTemperature > currentTemperature) {
-      change = 1
-    } else if (desiredTemperature < currentTemperature){
-      change = -1
+      // Clear the timer when the temperature matches the desired temperature
+      if (temperature === desiredTemperature) {
+        clearTimeout(timer);
+      }
+    }, 1000);
+
+    // Cleanup function to clear the timer when the component unmounts
+    return () => clearTimeout(timer);
+  }, [desiredTemperature, temperature]);
+  
+  
+  const slowlyChangeTemperature = () => {
+    if (desiredTemperature > temperature) {
+      setTemperature(temperature + 1)
+    } else if (desiredTemperature < temperature){
+      setTemperature(temperature - 1)
     }
   }
 
   return (
     <section>
       <h2>Thermometer</h2>
-      <div className="actual-temp">Actual Temperature: {"x"}°F</div>
+      <div className="actual-temp">Actual Temperature: {temperature}°F</div>
       <ReactSlider
         value={temperature}
-        onAfterChange={(val) => {slowlyChangeTemperature(val)}}
+        onAfterChange={(val) => {setDesiredTemperature(val)}}
         className="thermometer-slider"
         thumbClassName="thermometer-thumb"
         trackClassName="thermometer-track"
